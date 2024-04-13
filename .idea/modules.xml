@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/pythonProject.iml" filepath="$PROJECT_DIR$/.idea/pythonProject.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../OneDrive/Script/qrCode/.idea/qrCode.iml" filepath="$PROJECT_DIR$/../OneDrive/Script/qrCode/.idea/qrCode.iml" />
+    </modules>
+  </component>
+</project>
