@@ -5,6 +5,7 @@ from PyQt6.QtWidgets import QTableWidget, QHBoxLayout, QCalendarWidget, QTextBro
 from PyQt6.QtWidgets import QFormLayout, QComboBox, QDialogButtonBox, QLabel, QGridLayout, QTableWidgetItem
 from PyQt6.QtGui import QIcon, QPixmap
 from PyQt6.QtCore import Qt
+from PyQt6.QtCore import QDate
 
 class EventDialog(QDialog):
     def __init__(self, apprentices):
@@ -169,6 +170,7 @@ class CalendarApp(QMainWindow):
         self.apprentices = []
 
         self.load_apprentices_from_database()  # Load apprentices from database
+        self.update_event_display()  # Update the event display widget
 
         # Connect the clicked signal of the calendar to the update_event_display slot
         self.calendar.clicked.connect(self.update_event_display)
