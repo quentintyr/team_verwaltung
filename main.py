@@ -51,19 +51,6 @@ class CalendarApp(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        def create_table():
-            conn = sqlite3.connect('test.db')
-            c = conn.cursor()
-            c.execute('''CREATE TABLE IF NOT EXISTS Lehrlinge
-                         (id INTEGER PRIMARY KEY,
-                         Vorname TEXT,
-                         Nachname TEXT,
-                         Beruf TEXT,
-                         Lehrjahr INTEGER)''')
-            conn.commit()
-            conn.close()
-        create_table()
-
         self.setWindowTitle("Teamverwaltung")
         self.setGeometry(100, 100, 1280, 720)
         self.setWindowIcon(QIcon("icons/logo/logo.ico"))
@@ -173,6 +160,8 @@ class CalendarApp(QMainWindow):
         self.events = []
         self.apprentices = []
 
+        self.load_apprentices_from_database()  # Load apprentices from database
+
         # Connect the clicked signal of the calendar to the update_event_display slot
         self.calendar.clicked.connect(self.update_event_display)
 
@@ -199,6 +188,23 @@ class CalendarApp(QMainWindow):
                 self.event_display.append(f"- {event['event_type']} : {event['apprentice']}")
         else:
             self.event_display.append(f"Keine Ereignisse für {selected_date}")
+
+    def load_apprentices_from_database(self):
+        conn = sqlite3.connect('apprentices.db')
+        c = conn.cursor()
+        c.execute("SELECT Beruf, Lehrjahr, Vorname, Nachname FROM Lehrlinge")
+        apprentices = c.fetchall()
+        conn.close()
+
+        # Populate the table widget with fetched data
+        self.apprentice_list.setColumnCount(4)
+        self.apprentice_list.setHorizontalHeaderLabels(["Beruf", "Lehrjahr", "Vorname", "Nachname"])
+        self.apprentice_list.setRowCount(len(apprentices))
+
+        for row, apprentice in enumerate(apprentices):
+            for col, value in enumerate(apprentice):
+                item = QTableWidgetItem(str(value))
+                self.apprentice_list.setItem(row, col, item)
 
 
 if __name__ == "__main__":
