@@ -1,5 +1,6 @@
 import sys
 import sqlite3
+import PyQt6.QtCore
 from PyQt6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget, QPushButton, QGroupBox, QDialog
 from PyQt6.QtWidgets import QTableWidget, QHBoxLayout, QCalendarWidget, QTextBrowser, QLineEdit, QMessageBox
 from PyQt6.QtWidgets import QFormLayout, QComboBox, QDialogButtonBox, QLabel, QGridLayout, QTableWidgetItem
@@ -73,9 +74,10 @@ class CalendarApp(QMainWindow):
         apprentice_layout.addWidget(self.edit_apprentice_button, 0, 1)
 
         self.remove_apprentice_button = QPushButton(QIcon("icons/buttons/delete.png"), "Löschen")
-        apprentice_layout.addWidget(self.remove_apprentice_button, 0 ,2)
+        apprentice_layout.addWidget(self.remove_apprentice_button, 0, 2)
 
         # Input fields with labels
+
         apprentice_layout.addWidget(QLabel("Lehrjahr:"), 1, 0)
         self.year_edit = QLineEdit()
         apprentice_layout.addWidget(self.year_edit, 1, 1)
@@ -100,13 +102,6 @@ class CalendarApp(QMainWindow):
         self.last_name_edit = QLineEdit()
         apprentice_layout.addWidget(self.last_name_edit, 4, 1)
 
-        # Picture addition in the apprentice group box with specific size
-        picture_label = QLabel()
-        pixmap = QPixmap("icons/test.jpg")  # Update the path as necessary
-        scaled_pixmap = pixmap.scaled(160, 160, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
-        picture_label.setPixmap(scaled_pixmap)
-        apprentice_layout.addWidget(picture_label, 0, 4, 5, 1)  # Spanning 4 rows and 1 column
-
         apprentice_group_box.setLayout(apprentice_layout)
         left_layout.addWidget(apprentice_group_box)
 
@@ -116,6 +111,21 @@ class CalendarApp(QMainWindow):
 
         input_fields_widget.setLayout(input_fields_layout)
         left_layout.addWidget(input_fields_widget)
+
+        # set the search button and the search field in the left layout
+        table_group_box = QGroupBox("Tabelle")
+        table_layout = QGridLayout()
+
+        self.search_apprentice_button = QPushButton(QIcon("icons/buttons/search.png"), "Suchen")
+        self.search_apprentice_button.setFixedWidth(113)
+        table_layout.addWidget(self.search_apprentice_button, 0, 0, 0, 5)
+
+        self.search_field = QLineEdit()
+        self.search_field.setFixedWidth(200)
+        table_layout.addWidget(self.search_field, 0, 1, 0, 0)
+
+        table_group_box.setLayout(table_layout)
+        left_layout.addWidget(table_group_box)
 
         self.apprentice_list = QTableWidget()
         self.apprentice_list.itemClicked.connect(self.update_input_fields_from_table)
@@ -142,6 +152,10 @@ class CalendarApp(QMainWindow):
         self.compensation_button = QPushButton(QIcon("icons/buttons/compensation.png"), "Zeitausgleich")
         self.compensation_button.clicked.connect(lambda: self.open_event_dialog("Zeitausgleich"))
         button_layout.addWidget(self.compensation_button)
+
+        self.school_button = QPushButton(QIcon("icons/buttons/vacation.png"), "Berufsschule")
+        self.school_button.clicked.connect(lambda: self.open_event_dialog("Berufsschule"))
+        button_layout.addWidget(self.school_button)
 
         right_layout.addLayout(button_layout)
 
