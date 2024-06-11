@@ -1,11 +1,14 @@
 import sys
 import sqlite3
+import datetime
 import PyQt6.QtCore
 from PyQt6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget, QPushButton, QGroupBox, QDialog
 from PyQt6.QtWidgets import QTableWidget, QHBoxLayout, QCalendarWidget, QTextBrowser, QLineEdit, QMessageBox
 from PyQt6.QtWidgets import QFormLayout, QComboBox, QDialogButtonBox, QLabel, QGridLayout, QTableWidgetItem, QDateEdit
-from PyQt6.QtGui import QIcon
+from PyQt6.QtGui import QIcon, QPalette, QTextCharFormat, QTextList
 from PyQt6.QtCore import Qt
+from datetime import datetime, timedelta
+from PyQt6.QtWidgets import QTextEdit, QDialogButtonBox, QDialogButtonBox, QListWidget, QDateTimeEdit
 
 
 class CalendarApp(QMainWindow):
@@ -100,28 +103,38 @@ class CalendarApp(QMainWindow):
         button_layout.addWidget(self.vacation_button)
 
         self.sick_button = QPushButton(QIcon("icons/buttons/sick.png"), "Krank / Arzt")  # sick button
+        self.sick_button.clicked.connect(self.open_add_event_dialog)
         button_layout.addWidget(self.sick_button)
 
         self.compensation_button = QPushButton(QIcon("icons/buttons/compensation.png"), "Zeitausgleich")
+        self.compensation_button.clicked.connect(self.open_add_event_dialog)
         button_layout.addWidget(self.compensation_button)  # time compensation button
 
-        self.school_button = QPushButton(QIcon("icons/buttons/vacation.png"), "Berufsschule")  # school button
+        self.school_button = QPushButton(QIcon("icons/buttons/school.png"), "Berufsschule")  # school button
+        self.school_button.clicked.connect(self.open_add_event_dialog)
         button_layout.addWidget(self.school_button)
+
+        self.work_button = QPushButton(QIcon("icons/buttons/work.png"), "Abteilung")
+        self.work_button.clicked.connect(self.open_add_event_dialog)
+        button_layout.addWidget(self.work_button)
+
 
         right_layout.addLayout(button_layout)  # adding the event button layout to the right layout
 
         entry_button_layout = QHBoxLayout()  # event layout
 
-        self.remove_event_button = QPushButton(QIcon("icons/buttons/delete_event.png"), "Eintrag löschen")
-        entry_button_layout.addWidget(self.remove_event_button)  # remove entry button
+        self.delete_event_button = QPushButton(QIcon("icons/buttons/delete_event.png"), "Eintrag löschen")
+        entry_button_layout.addWidget(self.delete_event_button)  # Button dem Layout hinzufügen
+        self.delete_event_button.clicked.connect(self.delete_event)
 
         self.edit_event_button = QPushButton(QIcon("icons/buttons/edit.png"), "Eintrag bearbeiten")
         entry_button_layout.addWidget(self.edit_event_button)  # edit entry button
+        self.edit_event_button.clicked.connect(self.edit)
 
         right_layout.addLayout(entry_button_layout)  # adding the entry button layout to the right layout
 
-        self.event_display = QTextBrowser()  # adding the entry display
-        right_layout.addWidget(self.event_display)
+        self.event_list = QListWidget()
+        right_layout.addWidget(self.event_list)
 
         main_layout.addLayout(left_layout)  # add left and right layouts to the main layout
         main_layout.addLayout(right_layout)
@@ -135,17 +148,10 @@ class CalendarApp(QMainWindow):
         self.update_event_display()  # Update the event display widget
         self.calendar.clicked.connect(self.update_event_display)  # update calender display
 
-    def add_event_to_calendar(self, apprentice_name, reason, from_date, to_date):
-        # create event dictionary and append to events list
-        event = {
-            "apprentice": apprentice_name,
-            "event_type": reason,
-            "date": from_date
-        }
-        self.events.append(event)
-        self.update_event_display()  # update event display
+        self.event_list.itemClicked.connect(self.on_event_selected)
 
     def load_apprentices_from_database(self):
+
         conn = sqlite3.connect('apprentices.db')
         c = conn.cursor()
         c.execute("SELECT profession, year, first_name, last_name, za, vacation "
@@ -164,27 +170,121 @@ class CalendarApp(QMainWindow):
 
     def populate_input_fields(self, row):
         apprentice = self.apprentices[row]
-        self.year_edit.setText(str(apprentice[1]))  # Lehrjahr
-        self.za_edit.setText(str(apprentice[4]))  # Zeitausgleich
-        self.category_edit.setText(apprentice[0])  # Beruf
-        self.first_name_edit.setText(apprentice[2])  # Vorname
-        self.vacation_edit.setText(str(apprentice[5]))  # Urlaub
-        self.last_name_edit.setText(apprentice[3])  # Nachname
+        self.year_edit.setText(str(apprentice[1]))
+        self.za_edit.setText(str(apprentice[4]))
+        self.category_edit.setText(apprentice[0])
+        self.first_name_edit.setText(apprentice[2])
+        self.vacation_edit.setText(str(apprentice[5]))
+        self.last_name_edit.setText(apprentice[3])
 
     def update_input_fields_from_table(self, item):  # update table
         row = item.row()
         self.populate_input_fields(row)
 
-    def update_event_display(self):  # update the event display
-        self.event_display.clear()
-        selected_date = self.calendar.selectedDate().toString("dd/MM/yyyy")
-        events_on_date = [event for event in self.events if event["date"] == selected_date]
-        if events_on_date:
-            self.event_display.append(f"Ereignisse für {selected_date}:")
-            for event in events_on_date:
-                self.event_display.append(f"- {event['event_type']} : {event['apprentice']}")
-        else:
-            self.event_display.append(f"Keine Ereignisse für {selected_date}")
+    def update_event_display(self):
+        selected_date = self.calendar.selectedDate().toString(Qt.DateFormat.ISODate)
+        try:
+            conn = sqlite3.connect('apprentices.db')
+            c = conn.cursor()
+            c.execute("SELECT ID, apprentice, von, bis, reason, Typ FROM Dates WHERE von<=? AND bis>=?",
+                      (selected_date, selected_date))
+            events = c.fetchall()
+            conn.close()
+            self.event_list.clear()
+            for event in events:
+                apprentice = event[1]
+                von = event[2].format(Qt.DateFormat.ISODate)
+                bis = event[3].format(Qt.DateFormat.ISODate)
+                reason = event[4]
+                item_text = f"Lehrling: {apprentice},\nVon: {von},\nBis: {bis},\nGrund: {reason}"
+                self.event_list.addItem(item_text)
+        except Exception as e:
+            print("Fehler beim Aktualisieren des Event-Displays:", e)
+            QMessageBox.critical(self, "Fehler", "Ein Fehler ist beim Aktualisieren des Event-Displays aufgetreten.")
+
+    def delete_event(self):
+        # Überprüfen, ob ein Element ausgewählt ist
+        selected_item = self.event_list.currentItem()
+        if selected_item is None:
+            QMessageBox.warning(self, "Warnung", "Bitte wählen Sie ein Event aus, das gelöscht werden soll.")
+            return
+
+        # Daten des ausgewählten Events aus der Event-Liste abrufen
+        event_text = selected_item.text()
+        event_data = event_text.split(",\n")
+        apprentice = event_data[0].split(": ")[1]
+        von = event_data[1].split(": ")[1]
+        bis = event_data[2].split(": ")[1]
+
+        try:
+            # Verbindung zur Datenbank herstellen und Löschvorgang durchführen
+            conn = sqlite3.connect('apprentices.db')
+            c = conn.cursor()
+            # Löschvorgang in der Datenbank durchführen
+            c.execute("DELETE FROM Dates WHERE apprentice=? AND von=? AND bis=?",
+                      (apprentice, von, bis))
+            conn.commit()
+            QMessageBox.information(self, "Erfolg", "Ihr Eintrag wurde erfolgreich gelöscht.")
+            self.update_event_display()  # Event-Display aktualisieren
+        except Exception as e:
+            print("Fehler beim Löschen des Eintrags:", e)
+        finally:
+            conn.close()
+
+    def on_event_selected(self, item):
+
+        # Funktion für die Ereignisauswahl
+        selected_text = item.text()
+        print("Ausgewähltes Ereignis:", selected_text)
+
+    def edit(self):
+        from PyQt6.QtWidgets import QDateTimeEdit
+        # Überprüfen, ob ein Element ausgewählt ist
+        selected_item = self.event_list.currentItem()
+        if selected_item is None:
+            QMessageBox.warning(self, "Warnung", "Bitte wählen Sie ein Event aus, das bearbeitet werden soll.")
+            return
+
+        # Daten des ausgewählten Events aus der Event-Liste abrufen
+        event_text = selected_item.text()
+        event_data = event_text.split(",\n")
+        apprentice = event_data[0].split(": ")[1]
+        von = event_data[1].split(": ")[1]
+        bis = event_data[2].split(": ")[1]
+        reason = event_data[3].split(": ")[1]
+
+        # AddEventDialog mit den Daten des ausgewählten Events aufrufen und anzeigen
+        dialog = AddEventDialog(self)
+        dialog.set_apprentice(apprentice)
+        dialog.set_reason(reason)
+
+        # Die Daten müssen als QDate-Objekte in den Kalendern angezeigt werden
+        # von_date = QDateTime.fromString(von, Qt.ISODate).date()
+        # bis_date = QDateTime.fromString(bis, Qt.ISODate).date()
+        # dialog.date_from_calendar.setSelectedDate(von_date)
+        # dialog.date_to_calendar.setSelectedDate(bis_date)
+
+        if dialog.exec() == QDialog.Accepted:
+            # Neue Daten aus dem Dialog abrufen
+            new_apprentice = dialog.get_apprentice()
+            new_reason = dialog.get_reason()
+            new_von = dialog.date_from_calendar.selectedDate().toString(Qt.ISODate)
+            new_bis = dialog.date_to_calendar.selectedDate().toString(Qt.ISODate)
+
+            try:
+                # Verbindung zur Datenbank herstellen und den Datensatz aktualisieren
+                conn = sqlite3.connect('apprentices.db')
+                c = conn.cursor()
+                c.execute(
+                    "UPDATE Dates SET apprentice=?, von=?, bis=?, reason=? WHERE apprentice=? AND von=? AND bis=? AND reason=?",
+                    (new_apprentice, new_von, new_bis, new_reason, apprentice, von, bis, reason))
+                conn.commit()
+                print("Event erfolgreich bearbeitet.")
+                self.update_event_display()  # Event-Display aktualisieren
+            except Exception as e:
+                print("Fehler beim Bearbeiten des Events:", e)
+            finally:
+                conn.close()
 
     def save_apprentice_changes(self):
         conn = sqlite3.connect('apprentices.db')
@@ -218,38 +318,32 @@ class CalendarApp(QMainWindow):
                 print(e)
 
     def on_delete_clicked(self):
-        if self.apprentice_list.currentRow() < 0:  # check if a row is selected
+        # Überprüfen, ob eine Zeile ausgewählt ist
+        if self.apprentice_list.currentRow() < 0:
             QMessageBox.warning(self, "Warnung", "Kein Eintrag ausgewählt.")
             return
 
-        # Clear input fields after adding new apprentice
-        self.first_name_edit.clear()
-        self.last_name_edit.clear()
-        self.category_edit.clear()
-        self.year_edit.clear()
-        self.za_edit.clear()
-        self.vacation_edit.clear()
+        # Daten aus dem Table Widget abrufen
+        selected_row = self.apprentice_list.currentRow()
+        first_name = self.apprentice_list.item(selected_row, 2).text().strip()
+        last_name = self.apprentice_list.item(selected_row, 3).text()
+        profession = self.apprentice_list.item(selected_row, 0).text()
 
-        selected_row = self.apprentice_list.currentRow()  # get the selected row from the table
+        # Verbindung zur Datenbank herstellen und Löschvorgang durchführen
         conn = sqlite3.connect('apprentices.db')
         c = conn.cursor()
-        if selected_row >= 0:
-            # get the values from the selected row that uniquely identify the record
-            first_name = self.apprentice_list.item(selected_row, 2).text().strip()
-            last_name = self.apprentice_list.item(selected_row, 3).text()
-            profession = self.apprentice_list.item(selected_row, 0).text()
-            print(first_name)
-            # delete the entry from the database using the unique identifier (the green key in heidisql)
-            try:
-                sql_delete = ("DELETE FROM Lehrlinge WHERE first_name=\'" + first_name + "\' " "AND last_name=\'"
-                              + last_name + "\' AND profession=\'" + profession + "\';")
-                c.execute(sql_delete)
-                conn.commit()
-                QMessageBox.information(self, "Erfolg", "Eintrag erfolgreich gelöscht.")
-                conn.commit()
-                self.load_apprentices_from_database()  # refresh the table widget
-            except Exception as e:
-                print(e)
+        try:
+            # Löschvorgang in der Datenbank durchführen
+            c.execute("DELETE FROM Lehrlinge WHERE first_name=? AND last_name=? AND profession=?",
+                      (first_name, last_name, profession))
+            conn.commit()
+            QMessageBox.information(self, "Erfolg", "Lehrling erfolgreich gelöscht.")
+            self.load_apprentices_from_database()  # Aktualisierung des Table Widgets
+        except Exception as e:
+            print("Fehler beim Löschen des Lehrlings:", e)
+            QMessageBox.critical(self, "Fehler", "Ein Fehler ist beim Löschen des Lehrlings aufgetreten.")
+        finally:
+            conn.close()
 
     def on_new_clicked(self):
         conn = sqlite3.connect('apprentices.db')
@@ -262,7 +356,7 @@ class CalendarApp(QMainWindow):
         za = self.za_edit.text()
         vacation = self.vacation_edit.text()
 
-        self.first_name_edit.clear()   # clear input fields after adding new apprentice
+        self.first_name_edit.clear()  # clear input fields after adding new apprentice
         self.last_name_edit.clear()
         self.category_edit.clear()
         self.year_edit.clear()
@@ -314,6 +408,19 @@ class CalendarApp(QMainWindow):
         dialog = AddEventDialog(self)
         dialog.exec()
 
+def save_dates_to_database(apprentice, reason, von, bis):
+    try:
+        conn = sqlite3.connect('apprentices.db')
+        c = conn.cursor()
+        c.execute("INSERT INTO Dates (apprentice, reason, von, bis) VALUES (?, ?, ?, ?)",
+                  (apprentice, reason, von, bis))
+        conn.commit()
+        conn.close()
+        print("Datumsangaben erfolgreich in die Datenbank gespeichert.")
+    except Exception as e:
+        print("Fehler beim Speichern der Datumsangaben in die Datenbank:", e)
+
+
 class AddEventDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -339,17 +446,16 @@ class AddEventDialog(QDialog):
         main_layout.addRow(self.button_box)
 
         self.setLayout(main_layout)
-
         self.populate_apprentices()
 
-        self.button_box.accepted.connect(self.add_event)
+        self.button_box.accepted.connect(self.add_event_and_save_to_database)
         self.button_box.rejected.connect(self.reject)
 
-    def populate_apprentices(self):  # populate the combobox
+    def populate_apprentices(self):
         try:
             conn = sqlite3.connect('apprentices.db')
             c = conn.cursor()
-            c.execute("SELECT last_name, first_name FROM Lehrlinge ORDER BY last_name")  # fetch apprentice names
+            c.execute("SELECT last_name, first_name FROM Lehrlinge ORDER BY last_name")
             apprentices = c.fetchall()
             conn.close()
             for apprentice in apprentices:
@@ -358,19 +464,16 @@ class AddEventDialog(QDialog):
         except Exception as e:
             print("Error in populate_apprentices method:", e)
 
-    def add_event(self):
+    def add_event_and_save_to_database(self):
         try:
             apprentice = self.apprentice_combo.currentText()
             reason = self.reason_lineedit.text()
-            date_from = self.date_from_calendar.selectedDate().toString(Qt.DateFormat.ISODate)
-            date_to = self.date_to_calendar.selectedDate().toString(Qt.DateFormat.ISODate)
-
-            # Now you can use these variables to perform further operations, such as adding the event to the database
-
+            von = self.date_from_calendar.selectedDate().toString(Qt.DateFormat.ISODate)
+            bis = self.date_to_calendar.selectedDate().toString(Qt.DateFormat.ISODate)
+            save_dates_to_database(apprentice, reason, von, bis)
             self.accept()
         except Exception as e:
-            print("Error in add_event method:", e)
-
+            print("Error in add_event_and_save_to_database method:", e)
 
 
 if __name__ == "__main__":
@@ -378,3 +481,4 @@ if __name__ == "__main__":
     window = CalendarApp()
     window.show()
     sys.exit(app.exec())
+
