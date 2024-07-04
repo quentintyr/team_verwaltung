@@ -114,10 +114,9 @@ class CalendarApp(QMainWindow):
         self.school_button.clicked.connect(self.open_add_event_dialog)
         button_layout.addWidget(self.school_button)
 
-        self.work_button = QPushButton(QIcon("icons/buttons/work.png"), "Abteilung")
+        self.work_button = QPushButton(QIcon("icons/buttons/desk.png"), " Abteilung")
         self.work_button.clicked.connect(self.open_add_event_dialog)
         button_layout.addWidget(self.work_button)
-
 
         right_layout.addLayout(button_layout)  # adding the event button layout to the right layout
 
@@ -408,6 +407,7 @@ class CalendarApp(QMainWindow):
         dialog = AddEventDialog(self)
         dialog.exec()
 
+
 def save_dates_to_database(apprentice, reason, von, bis):
     try:
         conn = sqlite3.connect('apprentices.db')
@@ -481,4 +481,3 @@ if __name__ == "__main__":
     window = CalendarApp()
     window.show()
     sys.exit(app.exec())
-
