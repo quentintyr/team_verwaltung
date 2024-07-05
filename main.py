@@ -493,6 +493,7 @@ class AddEventDialog(QDialog):
             bis = self.date_to_calendar.selectedDate().toString(Qt.DateFormat.ISODate)
             save_dates_to_database(apprentice, reason, von, bis)
             self.accept()
+            self.update_event_display()  # Event-Display aktualisieren
         except Exception as e:
             print("Error in add_event_and_save_to_database method:", e)
         
@@ -563,10 +564,9 @@ class AddAbteilungDialog(QDialog):
             bis = self.date_to_calendar.selectedDate().toString(Qt.DateFormat.ISODate)
             save_dates_to_database(apprentice, reason, von, bis)
             self.accept()
+            self.update_event_display()  # Event-Display aktualisieren
         except Exception as e:
             print("Error in add_event_and_save_to_database method:", e)
-
-
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
