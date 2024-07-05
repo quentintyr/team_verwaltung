@@ -117,7 +117,7 @@ class CalendarApp(QMainWindow):
         button_layout.addWidget(self.school_button)
 
         self.work_button = QPushButton(QIcon("icons/buttons/desk.png"), " Abteilung")
-        self.work_button.clicked.connect(self.open_add_event_dialog)
+        self.work_button.clicked.connect(self.open_add_abteilung_dialog)
         button_layout.addWidget(self.work_button)
 
         right_layout.addLayout(button_layout)  # adding the event button layout to the right layout
@@ -150,7 +150,11 @@ class CalendarApp(QMainWindow):
         self.calendar.clicked.connect(self.update_event_display)  # update calender display
 
         self.event_list.itemClicked.connect(self.on_event_selected)
-
+        
+    def open_add_abteilung_dialog(self):
+        dialog = AddAbteilungDialog(self)
+        dialog.exec()
+        
     def load_apprentices_from_database(self):
         conn = sqlite3.connect('apprentices.db')
         c = conn.cursor()
@@ -199,6 +203,10 @@ class CalendarApp(QMainWindow):
             QMessageBox.critical(self, "Fehler", "Ein Fehler ist beim Aktualisieren des Event-Displays aufgetreten.")
 
     def edit(self):
+        selected_item = self.event_list.currentItem()
+        if selected_item is None:
+            QMessageBox.warning(self, "Warnung", "Bitte wählen Sie ein Event aus, das bearbeitet werden soll.")
+            return
         selected_items = self.event_list.selectedItems()
         if selected_items:
             selected_item = selected_items[0]
@@ -206,7 +214,7 @@ class CalendarApp(QMainWindow):
             if index < len(self.events):
                 event = self.events[index]
 
-                apprentice, von, bis, reason, typ = event[1], event[2], event[3], event[4], event[5]
+                apprentice, von, bis, reason = event[1], event[2], event[3], event[4]
 
                 dialog = QDialog(self)
                 dialog.setWindowTitle("Eintrag bearbeiten")
@@ -240,7 +248,7 @@ class CalendarApp(QMainWindow):
                     try:
                         with sqlite3.connect('apprentices.db') as conn:
                             c = conn.cursor()
-                            c.execute("UPDATE Dates SET apprentice=?, von=?, bis=?, reason=?, Typ=? WHERE ID=?",
+                            c.execute("UPDATE Dates SET apprentice=?, von=?, bis=?, reason=? WHERE ID=?",
                                     (new_apprentice, new_von, new_bis, new_reason, event[0]))
                             conn.commit()
                             self.update_event_display()
@@ -489,6 +497,75 @@ class AddEventDialog(QDialog):
             print("Error in add_event_and_save_to_database method:", e)
         
         
+class AddAbteilungDialog(QDialog):
+    def __init__(self, selected_reason, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Ereignis hinzufügen")
+
+        main_layout = QFormLayout()
+
+        self.apprentice_combo = QComboBox()  # combo box with apprentices
+        main_layout.addRow("Lehrling:", self.apprentice_combo)
+
+        self.abteilung_combo = QComboBox()  # combo box with Abteilung options
+        main_layout.addRow("Abteilung:", self.abteilung_combo)
+
+        self.date_from_calendar = QCalendarWidget()  # from calender
+        self.date_from_calendar.setGridVisible(True)
+        main_layout.addRow("Von:", self.date_from_calendar)
+
+        self.date_to_calendar = QCalendarWidget()  # until calender
+        self.date_to_calendar.setGridVisible(True)
+        main_layout.addRow("Bis:", self.date_to_calendar)
+
+        self.button_box = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
+        main_layout.addRow(self.button_box)
+
+        self.setLayout(main_layout)
+        self.populate_apprentices()
+
+        self.button_box.accepted.connect(self.add_event_and_save_to_database)
+        self.button_box.rejected.connect(self.reject)
+
+        self.setLayout(main_layout)
+        self.populate_abteilung()
+
+    def populate_abteilung(self):
+        try:
+            conn = sqlite3.connect('apprentices.db')
+            c = conn.cursor()
+            c.execute("SELECT name FROM Abteilung ORDER BY name")
+            abteilungen = c.fetchall()
+            conn.close()
+            for abteilung in abteilungen:
+                self.abteilung_combo.addItem(abteilung[0])
+        except Exception as e:
+            print("Error in populate_abteilung method:", e)
+
+    def populate_apprentices(self):
+        try:
+            conn = sqlite3.connect('apprentices.db')
+            c = conn.cursor()
+            c.execute("SELECT last_name, first_name FROM Lehrlinge ORDER BY last_name")
+            apprentices = c.fetchall()
+            conn.close()
+            for apprentice in apprentices:
+                full_name = f"{apprentice[0]} {apprentice[1]}"
+                self.apprentice_combo.addItem(full_name)
+        except Exception as e:
+            print("Error in populate_apprentices method:", e)
+
+    def add_event_and_save_to_database(self):
+        try:
+            apprentice = self.apprentice_combo.currentText()
+            reason = self.abteilung_combo.currentText()
+            von = self.date_from_calendar.selectedDate().toString(Qt.DateFormat.ISODate)
+            bis = self.date_to_calendar.selectedDate().toString(Qt.DateFormat.ISODate)
+            save_dates_to_database(apprentice, reason, von, bis)
+            self.accept()
+        except Exception as e:
+            print("Error in add_event_and_save_to_database method:", e)
+
 
 
 if __name__ == "__main__":
