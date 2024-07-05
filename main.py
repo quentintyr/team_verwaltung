@@ -509,7 +509,11 @@ class AddAbteilungDialog(QDialog):
         main_layout.addRow("Lehrling:", self.apprentice_combo)
 
         self.abteilung_combo = QComboBox()  # combo box with Abteilung options
+        main_layout.addRow("Abteilungskürzel:", self.abteilung_combo)
+        
+        self.abteilung = QLineEdit()  # combo box with Abteilung options
         main_layout.addRow("Abteilung:", self.abteilung_combo)
+        self.abteilung.setDisabled(True)
 
         self.date_from_calendar = QCalendarWidget()  # from calender
         self.date_from_calendar.setGridVisible(True)
