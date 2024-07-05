@@ -192,7 +192,7 @@ class CalendarApp(QMainWindow):
                 von = event[2]
                 bis = event[3]
                 reason = event[4]
-                item_text = f"Lehrling: {apprentice},\nVon: {von},\nBis: {bis},\nGrund: {reason}"
+                item_text = f"Lehrling: {apprentice},\nVon: {von},\nBis: {bis},\nAnwesenheit: {reason}"
                 self.event_list.addItem(item_text)
         except Exception as e:
             print("Fehler beim Aktualisieren des Event-Displays:", e)
@@ -218,13 +218,11 @@ class CalendarApp(QMainWindow):
                 von_edit = QLineEdit(von)
                 bis_edit = QLineEdit(bis)
                 reason_edit = QLineEdit(reason)
-                typ_edit = QLineEdit(typ)
 
                 form_layout.addRow("Lehrling:", apprentice_edit)
                 form_layout.addRow("Von:", von_edit)
                 form_layout.addRow("Bis:", bis_edit)
-                form_layout.addRow("Grund:", reason_edit)
-                form_layout.addRow("Typ:", typ_edit)
+                form_layout.addRow("Anwesenheit:", reason_edit)
 
                 dialog_layout.addLayout(form_layout)
 
@@ -238,13 +236,12 @@ class CalendarApp(QMainWindow):
                     new_von = von_edit.text()
                     new_bis = bis_edit.text()
                     new_reason = reason_edit.text()
-                    new_typ = typ_edit.text()
 
                     try:
                         with sqlite3.connect('apprentices.db') as conn:
                             c = conn.cursor()
                             c.execute("UPDATE Dates SET apprentice=?, von=?, bis=?, reason=?, Typ=? WHERE ID=?",
-                                    (new_apprentice, new_von, new_bis, new_reason, new_typ, event[0]))
+                                    (new_apprentice, new_von, new_bis, new_reason, event[0]))
                             conn.commit()
                             self.update_event_display()
                     except Exception as e:
@@ -253,8 +250,6 @@ class CalendarApp(QMainWindow):
     def update_input_fields_from_table(self, item):
         row = item.row()
         self.populate_input_fields(row)
-
-
 
     def delete_event(self):
         # Überprüfen, ob ein Element ausgewählt ist
@@ -286,7 +281,6 @@ class CalendarApp(QMainWindow):
             conn.close()
 
     def on_event_selected(self, item):
-
         # Funktion für die Ereignisauswahl
         selected_text = item.text()
         print("Ausgewähltes Ereignis:", selected_text)
@@ -409,8 +403,22 @@ class CalendarApp(QMainWindow):
                     item = QTableWidgetItem(str(value))
                     self.apprentice_list.setItem(row, col, item)
 
-    def open_add_event_dialog(self):  # to call the class when button is pressed
-        dialog = AddEventDialog(self)
+    def open_add_event_dialog(self):
+        sender_button = self.sender()  # Get the button that triggered the signal
+        selected_reason = ""
+
+        if sender_button == self.vacation_button:
+            selected_reason = "Urlaub"
+        elif sender_button == self.sick_button:
+            selected_reason = "Krank / Arzt"
+        elif sender_button == self.compensation_button:
+            selected_reason = "Zeitausgleich"
+        elif sender_button == self.school_button:
+            selected_reason = "Berufsschule"
+        elif sender_button == self.work_button:
+            selected_reason = "Abteilung"
+
+        dialog = AddEventDialog(selected_reason, self)
         dialog.exec()
 
 
@@ -426,9 +434,8 @@ def save_dates_to_database(apprentice, reason, von, bis):
     except Exception as e:
         print("Fehler beim Speichern der Datumsangaben in die Datenbank:", e)
 
-
 class AddEventDialog(QDialog):
-    def __init__(self, parent=None):
+    def __init__(self, selected_reason, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Ereignis hinzufügen")
 
@@ -437,8 +444,8 @@ class AddEventDialog(QDialog):
         self.apprentice_combo = QComboBox()  # combo box with apprentices
         main_layout.addRow("Lehrling:", self.apprentice_combo)
 
-        self.reason_lineedit = QLineEdit()  # reason QLineedit
-        main_layout.addRow("Grund:", self.reason_lineedit)
+        self.reason_lineedit = QLineEdit(selected_reason)  # reason QLineedit with initial selected_reason
+        main_layout.addRow("Anwesenheit:", self.reason_lineedit)
 
         self.date_from_calendar = QCalendarWidget()  # from calender
         self.date_from_calendar.setGridVisible(True)
@@ -480,16 +487,8 @@ class AddEventDialog(QDialog):
             self.accept()
         except Exception as e:
             print("Error in add_event_and_save_to_database method:", e)
-    
-    def set_reason(self, reason):
-        self.selected_reason = reason
         
-        # Connect buttons to set_reason method
-        self.vacation_button.clicked.connect(lambda: self.set_reason('Urlaub'))
-        self.sick_button.clicked.connect(lambda: self.set_reason('Krank/Arzt'))
-        self.compensation_button.clicked.connect(lambda: self.set_reason('Zeitausgleich'))
-        self.school_button.clicked.connect(lambda: self.set_reason('Berufsschule'))
-        self.work_button.clicked.connect(lambda: self.set_reason('Abteilung'))
+        
 
 
 if __name__ == "__main__":
