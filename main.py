@@ -535,7 +535,7 @@ class AddAbteilungDialog(QDialog):
         try:
             conn = sqlite3.connect('apprentices.db')
             c = conn.cursor()
-            c.execute("SELECT name FROM Abteilung ORDER BY name")
+            c.execute("SELECT short FROM Abteilung ORDER BY short")
             abteilungen = c.fetchall()
             conn.close()
             for abteilung in abteilungen:
