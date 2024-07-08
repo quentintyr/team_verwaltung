@@ -508,11 +508,11 @@ class AddAbteilungDialog(QDialog):
         self.apprentice_combo = QComboBox()  # combo box with apprentices
         main_layout.addRow("Lehrling:", self.apprentice_combo)
 
-        self.abteilung_combo = QComboBox()  # combo box with Abteilung options
-        main_layout.addRow("Abteilungskürzel:", self.abteilung_combo)
+        self.abteilungShort = QComboBox()  # combo box with Abteilung options
+        main_layout.addRow("Abteilungskürzel:", self.abteilungShort)
         
         self.abteilung = QLineEdit()  # combo box with Abteilung options
-        main_layout.addRow("Abteilung:", self.abteilung_combo)
+        main_layout.addRow("Abteilungname:", self.abteilung)
         self.abteilung.setDisabled(True)
 
         self.date_from_calendar = QCalendarWidget()  # from calender
@@ -543,9 +543,28 @@ class AddAbteilungDialog(QDialog):
             abteilungen = c.fetchall()
             conn.close()
             for abteilung in abteilungen:
-                self.abteilung_combo.addItem(abteilung[0])
+                self.abteilungShort.addItem(abteilung[0])
         except Exception as e:
             print("Error in populate_abteilung method:", e)
+            
+    def populate_abteilung_name(self):
+        try:
+            conn = sqlite3.connect('apprentices.db')
+            c = conn.cursor() # initialization for the query
+            c.execute("SELECT name FROM Abteilung WHERE short = "+ self.abteilungShort.currentText() + "")
+            sql_satz = c.fetchall()
+            print(sql_satz)
+            satz_len = len(sql_satz)
+            conn.close()
+            if satz_len == 0: # if 0 = no entry was found
+                self.abteilung.setText('?')
+            else: 
+                self.abteilung.setText(sql_satz[0][0])
+        except Exception as e:
+            print("Error in populate_abteilung method:", e)
+        
+            self.INFO("Länder-KZ wird angezeigt.", "I")
+            conn.close()
 
     def populate_apprentices(self):
         try:
