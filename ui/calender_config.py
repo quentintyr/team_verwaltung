@@ -8,5 +8,5 @@ class CalenderApp(QtWidgets.QMainWindow):
         self.show()
 
         # main window settings
-        self.setWindowTitle("World Backups")
+        self.setWindowTitle("Teamverwaltung")
         self.setWindowIcon(QIcon("icons/logo_rect.png"))

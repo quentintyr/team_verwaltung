@@ -1,4 +1,4 @@
-from ui.calender_ui import CalenderApp
+from ui.calender_config import CalenderApp
 from PyQt6.QtWidgets import QApplication
 
 
