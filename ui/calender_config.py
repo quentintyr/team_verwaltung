@@ -153,7 +153,7 @@ class CalenderApp(QtWidgets.QMainWindow):
         conn.close()
 
         self.apprentice_list.setColumnCount(3)  # populate the table widget with fetched data
-        self.apprentice_list.setHorizontalHeaderLabels(["Kürzel", "Abteilungsname", "Abteilungsleiter"])
+        self.apprentice_list.setHorizontalHeaderLabels(["Abteilungsname", "Kürzel", "Abteilungsleiter"])
         self.apprentice_list.setRowCount(len(self.department))
 
         for row, department in enumerate(self.department):
