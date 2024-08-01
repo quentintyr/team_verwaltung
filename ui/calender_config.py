@@ -385,25 +385,50 @@ class CalenderApp(QtWidgets.QMainWindow):
             self.load_apprentices_from_database()  # refresh the apprentice list
 
     def on_search_clicked(self):  # searches the database
-        search_text = self.search_edit.text().strip()
-        if not search_text:
-            self.load_apprentices_from_database()  # if search field is empty, load all apprentices
-        else:
-            conn = sqlite3.connect('apprentices.db')
-            c = conn.cursor()
-            c.execute("SELECT profession, year, first_name, last_name, za, vacation "
-                    "FROM Lehrlinge WHERE first_name LIKE ? OR last_name LIKE ? "
-                    "OR profession LIKE ? ORDER BY year, profession, last_name",
-                    ('%' + search_text + '%', '%' + search_text + '%', '%' + search_text + '%'))
-            self.apprentices = c.fetchall()
-            conn.close()
+        current_text = self.sort_comboBox.currentText()
+        # apprentice search
+        if current_text == "Lehrlinge":
+            search_text = self.search_edit.text().strip()
+            if not search_text:
+                self.load_apprentices_from_database()  # if search field is empty, load all apprentices
+            else:
+                conn = sqlite3.connect('apprentices.db')
+                c = conn.cursor()
+                c.execute("SELECT profession, year, first_name, last_name, za, vacation "
+                        "FROM Lehrlinge WHERE first_name LIKE ? OR last_name LIKE ? "
+                        "OR profession LIKE ? ORDER BY year, profession, last_name",
+                        ('%' + search_text + '%', '%' + search_text + '%', '%' + search_text + '%'))
+                self.apprentices = c.fetchall()
+                conn.close()
 
-            self.apprentice_list.setRowCount(0)  # clear the table widget
-            for row, apprentice in enumerate(self.apprentices):
-                self.apprentice_list.insertRow(row)
-                for col, value in enumerate(apprentice):
-                    item = QTableWidgetItem(str(value))
-                    self.apprentice_list.setItem(row, col, item)
+                self.apprentice_list.setRowCount(0)  # clear the table widget
+                for row, apprentice in enumerate(self.apprentices):
+                    self.apprentice_list.insertRow(row)
+                    for col, value in enumerate(apprentice):
+                        item = QTableWidgetItem(str(value))
+                        self.apprentice_list.setItem(row, col, item)
+        # department search
+        if current_text == "Abteilungen":
+            search_text = self.search_edit.text().strip()
+            if not search_text:
+                self.load_department_from_database()  # if search field is empty, load all apprentices
+            else:
+                conn = sqlite3.connect('apprentices.db')
+                c = conn.cursor()
+                c.execute("SELECT name, short, leader "
+                        "FROM ABTEILUNG WHERE name LIKE ? OR short LIKE ? "
+                        "OR leader LIKE ? ORDER BY name, short, leader",
+                        ('%' + search_text + '%', '%' + search_text + '%', '%' + search_text + '%'))
+                self.apprentices = c.fetchall()
+                conn.close()
+
+                self.apprentice_list.setRowCount(0)  # clear the table widget
+                for row, apprentice in enumerate(self.apprentices):
+                    self.apprentice_list.insertRow(row)
+                    for col, value in enumerate(apprentice):
+                        item = QTableWidgetItem(str(value))
+                        self.apprentice_list.setItem(row, col, item)
+        
 
     def open_add_event_dialog(self):
         sender_button = self.sender()  # Get the button that triggered the signal
