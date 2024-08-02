@@ -18,7 +18,7 @@ class CalenderApp(QtWidgets.QMainWindow):
 
         # main window settings
         self.setWindowTitle("Teamverwaltung")
-        self.setWindowIcon(QIcon("icons/logo_rect.png"))
+        self.setWindowIcon(QIcon("icons/logo/team.gif"))
 
         # set the groupBox names
         self.apprentice_groupBox.setTitle("Lehrlinge")
@@ -438,7 +438,7 @@ class CalenderApp(QtWidgets.QMainWindow):
             selected_reason = "Urlaub"
         elif sender_button == self.sick_button:
             selected_reason = "Krank / Arzt"
-        elif sender_button == self.compensation_button:
+        elif sender_button == self.time_button:
             selected_reason = "Zeitausgleich"
         elif sender_button == self.school_button:
             selected_reason = "Berufsschule"
@@ -465,6 +465,7 @@ class AddEventDialog(QDialog):
     def __init__(self, selected_reason, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Ereignis hinzufügen")
+        self.setWindowIcon(QIcon("icons/logo/team.gif"))
 
         main_layout = QFormLayout()
 
@@ -518,10 +519,15 @@ class AddEventDialog(QDialog):
             print("Error in add_event_and_save_to_database method:", e)
         
         
+from PyQt6.QtWidgets import QDialog, QFormLayout, QComboBox, QLineEdit, QDateEdit, QCalendarWidget, QDialogButtonBox
+from PyQt6.QtGui import QIcon
+from PyQt6.QtCore import Qt
+
 class AddAbteilungDialog(QDialog):
     def __init__(self, selected_reason, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Ereignis hinzufügen")
+        self.setWindowIcon(QIcon("icons/logo/team.gif"))
 
         main_layout = QFormLayout()
 
@@ -535,22 +541,35 @@ class AddAbteilungDialog(QDialog):
         main_layout.addRow("Abteilungname:", self.abteilung)
         self.abteilung.setDisabled(True)
 
-        self.date_from_calendar = QCalendarWidget()  # from calender
-        self.date_from_calendar.setGridVisible(True)
+        self.date_from_calendar = QDateEdit()  # from calendar
+        self.date_from_calendar.setCalendarPopup(True)
+        self.date_from_calendar.setStyleSheet("""
+            QDateEdit::drop-down {
+                subcontrol-origin: padding;
+                subcontrol-position: top right;
+                width: 30px; /* Increase the width to provide more space for the icon */
+                border-left-width: 1px;
+                border-left-color: darkgray;
+                border-left-style: solid; /* just a single line */
+                border-top-right-radius: 3px; /* same radius as the QDateEdit itself */
+                border-bottom-right-radius: 3px;
+                background-color: #D3D3D3;
+            }
+            QDateEdit::down-arrow {
+                image: url(icons/buttons/calendar.png); /* path to your calendar icon */
+                width: 16px; /* Adjust the width of the icon */
+                height: 16px; /* Adjust the height of the icon */
+                padding: 20px; /* Center the icon within the drop-down button */
+            }
+        """)
         main_layout.addRow("Von:", self.date_from_calendar)
 
-        self.date_to_calendar = QCalendarWidget()  # until calender
+        self.date_to_calendar = QCalendarWidget()  # until calendar
         self.date_to_calendar.setGridVisible(True)
         main_layout.addRow("Bis:", self.date_to_calendar)
 
         self.button_box = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
         main_layout.addRow(self.button_box)
-
-        self.setLayout(main_layout)
-        self.populate_apprentices()
-
-        self.button_box.accepted.connect(self.add_event_and_save_to_database)
-        self.button_box.rejected.connect(self.reject)
 
         self.setLayout(main_layout)
         self.populate_abteilung()
