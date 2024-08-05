@@ -547,7 +547,7 @@ class AddAbteilungDialog(QDialog):
             QDateEdit::drop-down {
                 subcontrol-origin: padding;
                 subcontrol-position: top right;
-                width: 30px; /* Increase the width to provide more space for the icon */
+                width: 30px; /* Set a smaller width for the drop-down button */
                 border-left-width: 1px;
                 border-left-color: darkgray;
                 border-left-style: solid; /* just a single line */
@@ -555,17 +555,30 @@ class AddAbteilungDialog(QDialog):
                 border-bottom-right-radius: 3px;
                 background-color: #D3D3D3;
             }
+
             QDateEdit::down-arrow {
                 image: url(icons/buttons/calendar.png); /* path to your calendar icon */
-                width: 16px; /* Adjust the width of the icon */
-                height: 16px; /* Adjust the height of the icon */
-                padding: 20px; /* Center the icon within the drop-down button */
+                width: 12px; /* Adjust the width of the icon */
+                height: 12px; /* Adjust the height of the icon */
+                padding: 5px; /* Adjust padding to center the icon within the drop-down button */
             }
         """)
         main_layout.addRow("Von:", self.date_from_calendar)
 
-        self.date_to_calendar = QCalendarWidget()  # until calendar
-        self.date_to_calendar.setGridVisible(True)
+        self.date_to_calendar = QDateEdit()  # from calendar
+        self.date_to_calendar.setCalendarPopup(True)
+        self.date_to_calendar.setStyleSheet("""
+            QDateEdit::drop-down {
+                background-color: #D3D3D3;
+            }
+
+            QDateEdit::down-arrow {
+                image: url(icons/buttons/calendar.png); /* path to your calendar icon */
+                width: 12px; /* Adjust the width of the icon */
+                height: 12px; /* Adjust the height of the icon */
+                
+            }
+        """)
         main_layout.addRow("Bis:", self.date_to_calendar)
 
         self.button_box = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
