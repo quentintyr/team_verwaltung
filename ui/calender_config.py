@@ -6,7 +6,7 @@ from PyQt6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget, QPu
 from PyQt6.QtWidgets import QTableWidget, QHBoxLayout, QCalendarWidget, QTextBrowser, QLineEdit, QMessageBox
 from PyQt6.QtWidgets import QFormLayout, QComboBox, QDialogButtonBox, QLabel, QGridLayout, QTableWidgetItem, QDateEdit
 from PyQt6.QtGui import QIcon, QPalette, QTextCharFormat, QTextList
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, QDate
 from datetime import datetime, timedelta
 from PyQt6.QtWidgets import QTextEdit, QDialogButtonBox, QDialogButtonBox, QListWidget, QDateTimeEdit
 
@@ -464,7 +464,7 @@ def save_dates_to_database(apprentice, reason, von, bis):
 class AddEventDialog(QDialog):
     def __init__(self, selected_reason, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("Ereignis hinzufügen")
+        self.setWindowTitle("Abwesenheit hinzufügen")
         self.setWindowIcon(QIcon("icons/logo/team.gif"))
 
         main_layout = QFormLayout()
@@ -475,12 +475,44 @@ class AddEventDialog(QDialog):
         self.reason_lineedit = QLineEdit(selected_reason)  # reason QLineedit with initial selected_reason
         main_layout.addRow("Anwesenheit:", self.reason_lineedit)
 
-        self.date_from_calendar = QCalendarWidget()  # from calender
-        self.date_from_calendar.setGridVisible(True)
+        self.date_from_calendar = QDateEdit()  # from calendar
+        self.date_from_calendar.setCalendarPopup(True)
+        self.date_from_calendar.setDate(QDate.currentDate())
+        self.date_from_calendar.setStyleSheet("""
+            QDateEdit::drop-down {
+                border-left-width: 1px;
+                border-left-color: darkgray;
+                border-left-style: solid; /* just a single line */
+                background-color: #D3D3D3;
+            }
+
+            QDateEdit::down-arrow {
+                image: url(icons/buttons/calendar.png); /* path to your calendar icon */
+                width: 12px; /* Adjust the width of the icon */
+                height: 12px; /* Adjust the height of the icon */
+                
+            }
+        """)
         main_layout.addRow("Von:", self.date_from_calendar)
 
-        self.date_to_calendar = QCalendarWidget()  # until calender
-        self.date_to_calendar.setGridVisible(True)
+        self.date_to_calendar = QDateEdit()  # from calendar
+        self.date_to_calendar.setCalendarPopup(True)
+        self.date_to_calendar.setDate(QDate.currentDate())
+        self.date_to_calendar.setStyleSheet("""
+            QDateEdit::drop-down {
+                border-left-width: 1px;
+                border-left-color: darkgray;
+                border-left-style: solid; /* just a single line */
+                background-color: #D3D3D3;
+            }
+
+            QDateEdit::down-arrow {
+                image: url(icons/buttons/calendar.png); /* path to your calendar icon */
+                width: 12px; /* Adjust the width of the icon */
+                height: 12px; /* Adjust the height of the icon */
+                
+            }
+        """)
         main_layout.addRow("Bis:", self.date_to_calendar)
 
         self.button_box = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
@@ -526,7 +558,7 @@ from PyQt6.QtCore import Qt
 class AddAbteilungDialog(QDialog):
     def __init__(self, selected_reason, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("Ereignis hinzufügen")
+        self.setWindowTitle("Einteilung der Abteilung")
         self.setWindowIcon(QIcon("icons/logo/team.gif"))
 
         main_layout = QFormLayout()
@@ -543,16 +575,12 @@ class AddAbteilungDialog(QDialog):
 
         self.date_from_calendar = QDateEdit()  # from calendar
         self.date_from_calendar.setCalendarPopup(True)
+        self.date_from_calendar.setDate(QDate.currentDate())
         self.date_from_calendar.setStyleSheet("""
             QDateEdit::drop-down {
-                subcontrol-origin: padding;
-                subcontrol-position: top right;
-                width: 30px; /* Set a smaller width for the drop-down button */
                 border-left-width: 1px;
                 border-left-color: darkgray;
                 border-left-style: solid; /* just a single line */
-                border-top-right-radius: 3px; /* same radius as the QDateEdit itself */
-                border-bottom-right-radius: 3px;
                 background-color: #D3D3D3;
             }
 
@@ -560,15 +588,19 @@ class AddAbteilungDialog(QDialog):
                 image: url(icons/buttons/calendar.png); /* path to your calendar icon */
                 width: 12px; /* Adjust the width of the icon */
                 height: 12px; /* Adjust the height of the icon */
-                padding: 5px; /* Adjust padding to center the icon within the drop-down button */
+                
             }
         """)
         main_layout.addRow("Von:", self.date_from_calendar)
 
         self.date_to_calendar = QDateEdit()  # from calendar
         self.date_to_calendar.setCalendarPopup(True)
+        self.date_to_calendar.setDate(QDate.currentDate())
         self.date_to_calendar.setStyleSheet("""
             QDateEdit::drop-down {
+                border-left-width: 1px;
+                border-left-color: darkgray;
+                border-left-style: solid; /* just a single line */
                 background-color: #D3D3D3;
             }
 
@@ -586,6 +618,7 @@ class AddAbteilungDialog(QDialog):
 
         self.setLayout(main_layout)
         self.populate_abteilung()
+        self.populate_apprentices()
 
     def populate_abteilung(self):
         try:
