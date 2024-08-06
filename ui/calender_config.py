@@ -2,6 +2,7 @@ from PyQt6 import QtWidgets, uic
 import sys
 import sqlite3
 import PyQt6.QtCore
+from resources import resources_rc
 from PyQt6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget, QPushButton, QGroupBox, QDialog
 from PyQt6.QtWidgets import QTableWidget, QHBoxLayout, QCalendarWidget, QTextBrowser, QLineEdit, QMessageBox
 from PyQt6.QtWidgets import QFormLayout, QComboBox, QDialogButtonBox, QLabel, QGridLayout, QTableWidgetItem, QDateEdit
@@ -9,6 +10,7 @@ from PyQt6.QtGui import QIcon, QPalette, QTextCharFormat, QTextList
 from PyQt6.QtCore import Qt, QDate
 from datetime import datetime, timedelta
 from PyQt6.QtWidgets import QTextEdit, QDialogButtonBox, QDialogButtonBox, QListWidget, QDateTimeEdit
+
 
 class CalenderApp(QtWidgets.QMainWindow):
     def __init__(self):
@@ -97,6 +99,25 @@ class CalenderApp(QtWidgets.QMainWindow):
         # updates
         self.update_event_display()  # Update the event display widget
         self.load_apprentices_from_database() # Load apprentices from database
+        self.set_icons()
+    
+    def set_icons(self):
+        self.setNavigationBarVisible(True)
+        self.setVerticalHeaderFormat(QCalendarWidget.NoVerticalHeader)
+        self.setHorizontalHeaderFormat(QCalendarWidget.ShortDayNames)
+
+        # Set the icons for navigation buttons
+        self.setStyleSheet("""
+            #qt_calendar_prevmonth {
+                qproperty-icon: url(:/icons/arrows/arrow_left.ico);
+            }
+            #qt_calendar_nextmonth {
+                qproperty-icon: url(:/icons/arrows/arrow_right.ico);
+            }
+            #qt_calendar_yearbutton {
+                qproperty-icon: url(:/icons/arrows/arrow_dropdown.ico);
+            }
+        """)
 
     def on_combobox_changed(self):
         current_text = self.sort_comboBox.currentText()
