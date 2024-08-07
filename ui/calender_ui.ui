@@ -445,8 +445,6 @@ QCalendarWidget QWidget {
    </layout>
   </widget>
  </widget>
- <resources>
-  <include location="../resource.qrc"/>
- </resources>
+ <resources/>
  <connections/>
 </ui>

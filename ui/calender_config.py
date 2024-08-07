@@ -99,25 +99,6 @@ class CalenderApp(QtWidgets.QMainWindow):
         # updates
         self.update_event_display()  # Update the event display widget
         self.load_apprentices_from_database() # Load apprentices from database
-        self.set_icons()
-    
-    def set_icons(self):
-        self.setNavigationBarVisible(True)
-        self.setVerticalHeaderFormat(QCalendarWidget.NoVerticalHeader)
-        self.setHorizontalHeaderFormat(QCalendarWidget.ShortDayNames)
-
-        # Set the icons for navigation buttons
-        self.setStyleSheet("""
-            #qt_calendar_prevmonth {
-                qproperty-icon: url(:/icons/arrows/arrow_left.ico);
-            }
-            #qt_calendar_nextmonth {
-                qproperty-icon: url(:/icons/arrows/arrow_right.ico);
-            }
-            #qt_calendar_yearbutton {
-                qproperty-icon: url(:/icons/arrows/arrow_dropdown.ico);
-            }
-        """)
 
     def on_combobox_changed(self):
         current_text = self.sort_comboBox.currentText()
