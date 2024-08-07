@@ -551,10 +551,6 @@ class AddEventDialog(QDialog):
         except Exception as e:
             print("Error in add_event_and_save_to_database method:", e)
         
-        
-from PyQt6.QtWidgets import QDialog, QFormLayout, QComboBox, QLineEdit, QDateEdit, QCalendarWidget, QDialogButtonBox
-from PyQt6.QtGui import QIcon
-from PyQt6.QtCore import Qt
 
 class AddAbteilungDialog(QDialog):
     def __init__(self, selected_reason, parent=None):
