@@ -6,6 +6,7 @@ from PyQt6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget, QPu
 from PyQt6.QtWidgets import QTableWidget, QHBoxLayout, QCalendarWidget, QTextBrowser, QLineEdit, QMessageBox
 from PyQt6.QtWidgets import QFormLayout, QComboBox, QDialogButtonBox, QLabel, QGridLayout, QTableWidgetItem, QDateEdit
 from PyQt6.QtGui import QIcon, QPalette, QTextCharFormat, QTextList
+from PyQt6.QtGui import QColor, QShortcut, QKeySequence
 from PyQt6.QtCore import Qt, QDate
 from datetime import datetime, timedelta
 from PyQt6.QtWidgets import QTextEdit, QDialogButtonBox, QDialogButtonBox, QListWidget, QDateTimeEdit
@@ -98,6 +99,14 @@ class CalenderApp(QtWidgets.QMainWindow):
         # updates
         self.update_event_display()  # Update the event display widget
         self.load_apprentices_from_database() # Load apprentices from database
+
+        # Set up the stylesheet dialog shortcut
+        self.shortcut = QShortcut(QKeySequence.StandardKey.Print, self)
+        self.shortcut.activated.connect(self.open_stylesheet_dialog)
+
+    def open_stylesheet_dialog(self):
+        dialog = StyleSheetDialog()
+        dialog.exec()
 
     def on_combobox_changed(self):
         current_text = self.sort_comboBox.currentText()
@@ -672,3 +681,48 @@ class AddAbteilungDialog(QDialog):
             self.update_event_display()  # Event-Display aktualisieren
         except Exception as e:
             print("Error in add_event_and_save_to_database method:", e)
+class StyleSheetDialog(QDialog):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Select Stylesheet")
+
+        # Create layout and widgets
+        layout = QVBoxLayout()
+
+        self.stylesheet_combo = QComboBox()
+        self.stylesheet_combo.addItems(["Default", "Dark Mode", "Light Mode"])  # Add your stylesheets here
+        layout.addWidget(self.stylesheet_combo)
+
+        self.apply_button = QPushButton("Apply")
+        self.apply_button.clicked.connect(self.apply_stylesheet)
+        layout.addWidget(self.apply_button)
+
+        self.setLayout(layout)
+
+    def apply_stylesheet(self):
+        selected_stylesheet = self.stylesheet_combo.currentText()
+        if selected_stylesheet == "Default":
+            app.setStyleSheet("")
+        elif selected_stylesheet == "Dark Mode":
+            app.setStyleSheet("""
+                QMainWindow {
+                    background-color: #2E2E2E;
+                    color: #F0F0F0;
+                }
+                QPushButton {
+                    background-color: #4E4E4E;
+                    color: #F0F0F0;
+                }
+            """)
+        elif selected_stylesheet == "Light Mode":
+            app.setStyleSheet("""
+                QMainWindow {
+                    background-color: #FFFFFF;
+                    color: #000000;
+                }
+                QPushButton {
+                    background-color: #F0F0F0;
+                    color: #000000;
+                }
+            """)
+        self.close()
