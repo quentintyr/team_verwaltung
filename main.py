@@ -6,9 +6,9 @@ if __name__ == "__main__":
     import qdarktheme # type: ignore
     app = QApplication(sys.argv)
     
-    # Apply the dark theme stylesheet
-    app.setStyleSheet(qdarktheme.load_stylesheet("light"))
 
     window = CalenderApp()
     window.show()
     sys.exit(app.exec())
+    # Apply the dark theme stylesheet
+    app.setStyleSheet(qdarktheme.load_stylesheet("light"))
