@@ -552,13 +552,14 @@ class AddEventDialog(QDialog):
         try:
             apprentice = self.apprentice_combo.currentText()
             reason = self.reason_lineedit.text()
-            von = self.date_from_calendar.selectedDate().toString(Qt.DateFormat.ISODate)
-            bis = self.date_to_calendar.selectedDate().toString(Qt.DateFormat.ISODate)
+            von = self.date_from_calendar.date().toString(Qt.DateFormat.ISODate)
+            bis = self.date_to_calendar.date().toString(Qt.DateFormat.ISODate)
             save_dates_to_database(apprentice, reason, von, bis)
             self.accept()
-            self.update_event_display()  # Event-Display aktualisieren
+            self.parent().update_event_display()  # Update event display in parent
         except Exception as e:
             print("Error in add_event_and_save_to_database method:", e)
+
         
 
 class AddAbteilungDialog(QDialog):
