@@ -150,7 +150,7 @@ class CalendarApp(QMainWindow):
         self.calendar.clicked.connect(self.update_event_display)  # update calender display
 
         self.event_list.itemClicked.connect(self.on_event_selected)
-        # TODO - ADD | automatic funtion that archives apprentices
+        
     def open_add_abteilung_dialog(self):
         dialog = AddAbteilungDialog(self)
         dialog.exec()
@@ -467,12 +467,11 @@ class AddEventDialog(QDialog):
         main_layout.addRow(self.button_box)
 
         self.setLayout(main_layout)
-        self.populate_apprentices() # TODO - ADD | archive for apprentice that completed apprenticeship
+        self.populate_apprentices() 
 
         self.button_box.accepted.connect(self.add_event_and_save_to_database)
         self.button_box.rejected.connect(self.reject)
 
-    # TODO - ADD | Button to display archived apprentices
     def populate_apprentices(self):
         try:
             conn = sqlite3.connect('apprentices.db')
