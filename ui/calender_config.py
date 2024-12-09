@@ -472,6 +472,25 @@ def save_dates_to_database(apprentice, reason, von, bis):
     except Exception as e:
         print("Fehler beim Speichern der Datumsangaben in die Datenbank:", e)
 
+def archive_apprentice_test(start_date):
+    app_duration_years = 4
+    
+    end_date = start_date.replace(year=start_date.year + app_duration_years)
+    
+    return end_date
+
+start_date = datetime(2023, 9, 1)
+archive_date = archive_apprentice(start_date)
+print(f"The apprentice starting on {start_date.strftime('%Y-%m-%d')}should be archived on {archive_date.strftime('%Y-%m-%d')}.")
+
+current_date = datetime.now()
+
+if current_date >= archive_date:
+    print("The apprentice should be archived.")
+else:
+    print("The apprentice is still active.")
+
+
 class AddEventDialog(QDialog):
     def __init__(self, selected_reason, parent=None):
         super().__init__(parent)
