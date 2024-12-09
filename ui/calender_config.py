@@ -102,7 +102,7 @@ class CalenderApp(QtWidgets.QMainWindow):
         self.load_apprentices_from_database() # Load apprentices from database
 
         # Set up the stylesheet dialog shortcut
-        self.shortcut = QShortcut(QKeySequence.StandardKey.Print, self)
+        self.shortcut = QShortcut(QKeySequence("Ctrl+M"), self)
         self.shortcut.activated.connect(self.open_stylesheet_dialog)
 
     def open_stylesheet_dialog(self):
