@@ -11,7 +11,8 @@ from PyQt6.QtCore import Qt, QDate
 from datetime import datetime, timedelta
 from PyQt6.QtWidgets import QTextEdit, QDialogButtonBox, QDialogButtonBox, QListWidget, QDateTimeEdit
 
-
+#TODO: chore | split code to use mulitple files for each class for better code readability
+#              and better overview which file contains what code
 class CalenderApp(QtWidgets.QMainWindow):
     def __init__(self):
         super(CalenderApp, self).__init__()   # call the inherited classes __init__ method
@@ -700,6 +701,8 @@ class StyleSheetDialog(QDialog):
 
         self.setLayout(layout)
 
+    #TODO: chore | ui modes with combobox
+    #TODO: FIX | crashing when selecting mode in combobox 
     def apply_stylesheet(self):
         selected_stylesheet = self.stylesheet_combo.currentText()
         if selected_stylesheet == "Default":
