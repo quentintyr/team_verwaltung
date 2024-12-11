@@ -105,6 +105,8 @@ class CalenderApp(QtWidgets.QMainWindow):
         self.shortcut = QShortcut(QKeySequence("Ctrl+M"), self)
         self.shortcut.activated.connect(self.open_stylesheet_dialog)
 
+        self.archive_apprentice_test()
+
     def open_stylesheet_dialog(self):
         dialog = StyleSheetDialog()
         dialog.exec()
@@ -459,6 +461,17 @@ class CalenderApp(QtWidgets.QMainWindow):
         dialog = AddEventDialog(selected_reason, self)
         dialog.exec()
 
+    # archive apprentive in the database
+    #TODO: apprentice should not be deleted only a delete flag should be set, data must be saved for 7 years
+    def archive_apprentice(self):
+        try:
+            conn = sqlite3.connect('apprentices.db')
+            c = conn.cursor()
+            conn.close()
+            print("Connection to Database was successfull")
+        except Exception as e:
+            print("Database Connection was not established")
+
 
 def save_dates_to_database(apprentice, reason, von, bis):
     try:
@@ -472,23 +485,7 @@ def save_dates_to_database(apprentice, reason, von, bis):
     except Exception as e:
         print("Fehler beim Speichern der Datumsangaben in die Datenbank:", e)
 
-def archive_apprentice_test(start_date):
-    app_duration_years = 4
-    
-    end_date = start_date.replace(year=start_date.year + app_duration_years)
-    
-    return end_date
 
-start_date = datetime(2023, 9, 1)
-archive_date = archive_apprentice(start_date)
-print(f"The apprentice starting on {start_date.strftime('%Y-%m-%d')}should be archived on {archive_date.strftime('%Y-%m-%d')}.")
-
-current_date = datetime.now()
-
-if current_date >= archive_date:
-    print("The apprentice should be archived.")
-else:
-    print("The apprentice is still active.")
 
 
 class AddEventDialog(QDialog):
@@ -702,6 +699,7 @@ class AddAbteilungDialog(QDialog):
             self.update_event_display()  # Event-Display aktualisieren
         except Exception as e:
             print("Error in add_event_and_save_to_database method:", e)
+
 class StyleSheetDialog(QDialog):
     def __init__(self):
         super().__init__()
