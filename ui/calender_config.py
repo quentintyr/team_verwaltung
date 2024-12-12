@@ -105,7 +105,7 @@ class CalenderApp(QtWidgets.QMainWindow):
         self.shortcut = QShortcut(QKeySequence("Ctrl+M"), self)
         self.shortcut.activated.connect(self.open_stylesheet_dialog)
 
-        self.archive_apprentice_test()
+        self.archive_apprentice()
 
     def open_stylesheet_dialog(self):
         dialog = StyleSheetDialog()
@@ -160,8 +160,8 @@ class CalenderApp(QtWidgets.QMainWindow):
     def load_department_from_database(self):
         conn = sqlite3.connect('apprentices.db')
         c = conn.cursor()
-        c.execute("SELECT name, short, leader "
-                "FROM Abteilung ORDER BY name, short, leader ")  # order by year, profession, and last_name
+        c.execute("SELECT name, abbreviation, department_manager "
+                "FROM Abteilung ORDER BY name, abbreviation, department_manager ")  # order by year, profession, and last_name
         self.department = c.fetchall()
         conn.close()
 
@@ -428,9 +428,9 @@ class CalenderApp(QtWidgets.QMainWindow):
             else:
                 conn = sqlite3.connect('apprentices.db')
                 c = conn.cursor()
-                c.execute("SELECT name, short, leader "
-                        "FROM ABTEILUNG WHERE name LIKE ? OR short LIKE ? "
-                        "OR leader LIKE ? ORDER BY name, short, leader",
+                c.execute("SELECT name, abbreviation, department_manager "
+                        "FROM ABTEILUNG WHERE name LIKE ? OR abbreviation LIKE ? "
+                        "OR department_manager LIKE ? ORDER BY name, abbreviation, department_manager",
                         ('%' + search_text + '%', '%' + search_text + '%', '%' + search_text + '%'))
                 self.apprentices = c.fetchall()
                 conn.close()
@@ -648,7 +648,7 @@ class AddAbteilungDialog(QDialog):
         try:
             conn = sqlite3.connect('apprentices.db')
             c = conn.cursor()
-            c.execute("SELECT short FROM Abteilung ORDER BY short")
+            c.execute("SELECT abbreviation FROM Abteilung ORDER BY abbreviation")
             abteilungen = c.fetchall()
             conn.close()
             for abteilung in abteilungen:
@@ -660,7 +660,7 @@ class AddAbteilungDialog(QDialog):
         try:
             conn = sqlite3.connect('apprentices.db')
             c = conn.cursor() # initialization for the query
-            c.execute("SELECT name FROM Abteilung WHERE short = "+ self.abteilungShort.currentText() + "")
+            c.execute("SELECT name FROM Abteilung WHERE abbreviation = "+ self.abteilungShort.currentText() + "")
             sql_satz = c.fetchall()
             print(sql_satz)
             satz_len = len(sql_satz)
